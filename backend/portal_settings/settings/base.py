@@ -1,5 +1,6 @@
 from pathlib import Path
-import os
+import os, environ
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -80,12 +81,31 @@ TEMPLATES = [
 WSGI_APPLICATION = 'portal_settings.wsgi.application'
 ASGI_APPLICATION = "portal_settings.asgi.application"
 
+
+
+env = environ.Env()
+environ.Env.read_env(BASE_DIR / ".env")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("POSTGRES_DB"),
+        "USER": env("POSTGRES_USER"),
+        "PASSWORD": env("POSTGRES_PASSWORD"),
+        "HOST": env("POSTGRES_HOST"),
+        "PORT": env("POSTGRES_PORT"),
     }
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": "pte_portal_dev",
+#         "USER": "pte_user",
+#         "PASSWORD": "PwdPTEPortal_v1",
+#         "HOST": "localhost",
+#         "PORT": "5432",
+#     }
+# }
 
 
 AUTH_PASSWORD_VALIDATORS = [
