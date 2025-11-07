@@ -94,19 +94,11 @@ DATABASES = {
         "PASSWORD": env("POSTGRES_PASSWORD"),
         "HOST": env("POSTGRES_HOST"),
         "PORT": env("POSTGRES_PORT"),
+        'OPTIONS': {
+            'options': '-c search_path=accounts,core,test_engine,mock_tests,public'
+        }
     }
 }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "pte_portal_dev",
-#         "USER": "pte_user",
-#         "PASSWORD": "PwdPTEPortal_v1",
-#         "HOST": "localhost",
-#         "PORT": "5432",
-#     }
-# }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
