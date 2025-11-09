@@ -214,3 +214,220 @@ main {
   position: relative;
   top: 0.5px;           /* ✅ fine-tune center balance */
 }
+
+/* ===============================
+   Mega Dropdown — PTE Practice (Gapless Final Version)
+   ✅ Scrollable if needed
+   ✅ No empty gaps below
+   ✅ Works on phones, tablets, laptops, TVs
+=============================== */
+
+.dropdown {
+  position: relative;
+}
+
+.dropdown-link {
+  color: #e0e0e0;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  cursor: pointer;
+}
+
+.dropdown-link:hover {
+  color: #fff;
+}
+
+/* ---- Dropdown Container ---- */
+.mega-dropdown {
+  position: fixed;
+  top: 65px;
+  left: 0;
+  width: 100vw;
+  background-color: #0f0f0f;
+  color: #fff;
+  padding: 2rem 6%;
+  border-top: 1px solid #1e1e1e;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+
+  /* Animation */
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  /* ✅ Scrollable only when needed */
+  max-height: calc(100vh - 65px); /* full screen minus navbar height */
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #444 #0f0f0f;
+
+  /* Prevent layout shift / extra space */
+  margin: 0;
+  padding-bottom: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ✅ Visible state when open */
+.mega-dropdown.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+/* ---- Scrollbar Styling (Chrome / Safari / Edge) ---- */
+.mega-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mega-dropdown::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 10px;
+}
+
+.mega-dropdown::-webkit-scrollbar-thumb:hover {
+  background-color: #666;
+}
+
+.mega-dropdown::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+
+/* ---- Title ---- */
+.dropdown-title {
+  text-align: center;
+  font-size: clamp(1rem, 2vw, 1.3rem);
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 2rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding-left: 0.5rem;
+  margin-top: 0; /* ✅ remove any top spacing */
+}
+
+/* ---- Grid Layout ---- */
+.dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 3rem;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+/* ---- Columns ---- */
+.dropdown-column {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 200px;
+}
+
+/* ---- Common Section Titles ---- */
+.section-title {
+  color: #4fa3ff;
+  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+  border-bottom: 2px solid #2b2b2b;
+  padding-bottom: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: 100%;
+  transition: all 0.25s ease;
+}
+
+.section-title:hover {
+  color: #ffffff;
+  border-bottom-color: #4fa3ff;
+  transform: translateX(5px);
+}
+
+/* ---- Sub-items ---- */
+.dropdown-column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.dropdown-column li {
+  color: #cfcfcf;
+  font-size: clamp(0.85rem, 1.4vw, 0.95rem);
+  line-height: 1.8;
+  transition: color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+  padding-left: 0.3rem;
+  text-align: left;
+}
+
+.dropdown-column li:hover {
+  color: #ffffff;
+  transform: translateX(4px);
+}
+
+/* ---- "New" Tag ---- */
+.new {
+  color: #00ff9d;
+  font-size: 0.8rem;
+  margin-left: 6px;
+}
+
+/* ---- Responsive Scaling ---- */
+@media (max-width: 900px) {
+  .mega-dropdown {
+    padding: 1.5rem 5%;
+  }
+}
+
+@media (max-width: 600px) {
+  .mega-dropdown {
+    padding: 1.5rem 4%;
+  }
+
+  .dropdown-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .dropdown-title {
+    font-size: 1.1rem;
+    text-align: left;
+  }
+
+  .section-title {
+    font-size: 0.95rem;
+  }
+
+  .dropdown-column li {
+    font-size: 0.9rem;
+  }
+}
+
+/* ---- Ultra-wide TV and Large Screens ---- */
+@media (min-width: 1800px) {
+  .mega-dropdown {
+    padding: 3rem 12%;
+  }
+
+  .dropdown-grid {
+    max-width: 1900px;
+    gap: 4rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+  }
+
+  .dropdown-column li {
+    font-size: 1rem;
+  }
+}
+
+
