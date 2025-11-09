@@ -1,5 +1,6 @@
 from pathlib import Path
-import os, environ
+import os
+import environ
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -11,9 +12,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-key")
 DEBUG = False
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
-
-ALLOWED_HOSTS = []
 
 
 INSTALLED_APPS = [
@@ -55,12 +55,20 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+
+    # ✅ Add this just after session (early in stack)
+    'apps.core.middleware.RequestIDMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # ✅ Add this at the very end (catch all errors)
+    'apps.core.middleware.ExceptionToJSONMiddleware',
 ]
+
 
 ROOT_URLCONF = 'portal_settings.urls'
 
@@ -131,6 +139,45 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
+    "EXCEPTION_HANDLER": "apps.core.exceptions.drf_exception_handler",
+    # optionally set default pagination class later:
+    # "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
+}
+REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = "apps.core.pagination.StandardPagination"
+REST_FRAMEWORK["PAGE_SIZE"] = 20
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PTE Portal API',
+    'DESCRIPTION': 'API documentation for PTE Portal backend',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
-SPECTACULAR_SETTINGS = {"TITLE": "PTE Portal API", "VERSION": "0.1.0"}
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s",
+        },
+        "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
+    },
+    "filters": {
+        "request_id_filter": {
+            "()": "django.utils.log.CallbackFilter",
+            "callback": lambda record: setattr(record, "request_id", getattr(record, "request_id", "-")) or True,
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json",
+            "filters": ["request_id_filter"],
+        },
+    },
+    "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "django.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
