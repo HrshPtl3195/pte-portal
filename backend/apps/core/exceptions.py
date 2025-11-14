@@ -1,50 +1,59 @@
-
-# apps/core/exceptions.py (append)
-from rest_framework.views import exception_handler as drf_exception_handler_orig
-from rest_framework.response import Response
+# apps/core/exceptions.py
 from rest_framework.exceptions import APIException
+from rest_framework.views import exception_handler as drf_default_handler
+from rest_framework.response import Response
 from rest_framework import status
 
-
+from .result import Result
 
 
 class APIError(APIException):
+    """
+    Generic application-level API error. Use this when you want a controlled JSON error.
+    """
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = "A server error occurred."
-    default_code = "error"
-
-
-    def __init__(self, detail=None, code=None, status_code=None):
-        if status_code is not None:
-            self.status_code = status_code
-        super().__init__(detail or self.default_detail, code or self.default_code)
-
-
+    default_detail = "Bad request"
+    default_code = "api_error"
 
 
 class PermissionDeniedError(APIError):
-    def __init__(self, detail="Permission denied"):
-        super().__init__(detail=detail, status_code=status.HTTP_403_FORBIDDEN)
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = "Permission denied"
+    default_code = "permission_denied"
 
 
 def drf_exception_handler(exc, context):
     """
-    Wrap DRF's exception handler into our JSON envelope.
+    Wrap DRF exceptions into the uniform Result envelope.
+    Use in settings: REST_FRAMEWORK['EXCEPTION_HANDLER'] = 'apps.core.exceptions.drf_exception_handler'
     """
-    drf_resp = drf_exception_handler_orig(exc, context)
+    # Let DRF produce its standard response first (gives status_code & body we can reuse)
+    drf_resp = drf_default_handler(exc, context)
     if drf_resp is None:
-        return None
+        # Not handled by DRF's default handler -> produce generic internal error shape
+        res = Result.fail(message="Internal server error", code="internal_error")
+        return Response(res.to_dict(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # drf_resp.data is usually a dict; try to extract a friendly message
+    # If DRF returned a Response, convert its data into our Result envelope
+    status_code = drf_resp.status_code
     data = drf_resp.data
-    msg = None
-    if isinstance(data, dict):
-        # common DRF shapes: {'detail': '...'} or field-errors dict
-        msg = data.get("detail") or "Validation error"
-    else:
-        msg = str(data)
 
-    return Response(
-        {"success": False, "error": {"message": msg, "details": data}},
-        status=drf_resp.status_code,
-    )
+    # If data is already shaped as our envelope (avoid double-wrapping)
+    if isinstance(data, dict) and ("success" in data and ("data" in data or "error" in data)):
+        return drf_resp
+
+    # Build error info when status >= 400
+    if 400 <= status_code < 600:
+        # DRF often returns {'detail': '...'} or field-errors dict
+        if isinstance(data, dict) and "detail" in data:
+            message = data.get("detail")
+            err = {"message": message}
+        else:
+            # validation errors or other structured errors
+            err = {"message": "Validation error", "details": data} if status_code == 400 else {"message": data}
+        res = Result.fail(message=err.get("message", "Error"), code=None, details=err.get("details"))
+        return Response(res.to_dict(), status=status_code)
+
+    # For anything else (2xx) — return as success
+    res = Result.ok(data=data)
+    return Response(res.to_dict(), status=status_code)

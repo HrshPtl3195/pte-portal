@@ -1,19 +1,16 @@
+# portal_settings/base.py
 from pathlib import Path
 import os
 import environ
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
 
 # SECRET_KEY = 'django-insecure-hrum!ljy##hz+xe-r5nzaj%zdkq_zxnvq133lhb+)$@l!z_=gi'
 # DEBUG = True
 
-
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-secret-key")
 DEBUG = False
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
-
 
 
 INSTALLED_APPS = [
@@ -56,7 +53,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
 
-    # ✅ Add this just after session (early in stack)
+    # Attach request_id and per-request logger early so downstream code sees it
     'apps.core.middleware.RequestIDMiddleware',
 
     'django.middleware.common.CommonMiddleware',
@@ -65,10 +62,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    # ✅ Add this at the very end (catch all errors)
+    # Catch-all JSON error middleware for API routes (keep near end so request.user exists)
     'apps.core.middleware.ExceptionToJSONMiddleware',
 ]
-
 
 ROOT_URLCONF = 'portal_settings.urls'
 
@@ -88,7 +84,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'portal_settings.wsgi.application'
 ASGI_APPLICATION = "portal_settings.asgi.application"
-
 
 
 env = environ.Env()
@@ -131,7 +126,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -153,20 +147,26 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
+# ------------------------
+# LOGGING (uses apps.core.logging.RequestIDFilter)
+# ------------------------
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
+        # JSON formatter (pythonjsonlogger) - includes request_id in structured output
         "json": {
             "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            # include request_id as a named field so RequestIDFilter can set it
             "fmt": "%(asctime)s %(levelname)s %(name)s %(message)s %(request_id)s",
         },
         "simple": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"},
     },
     "filters": {
+        # Use the RequestIDFilter defined in apps.core.logging which ensures
+        # every log record has a 'request_id' attribute (fallback '-').
         "request_id_filter": {
-            "()": "django.utils.log.CallbackFilter",
-            "callback": lambda record: setattr(record, "request_id", getattr(record, "request_id", "-")) or True,
+            "()": "apps.core.logging.RequestIDFilter",
         }
     },
     "handlers": {
@@ -179,5 +179,7 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
         "django.request": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        # Optionally add an 'apps' logger for your application logs
+        "apps": {"handlers": ["console"], "level": "INFO", "propagate": False},
     },
 }

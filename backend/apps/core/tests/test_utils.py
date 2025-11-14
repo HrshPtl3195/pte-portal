@@ -9,7 +9,7 @@ def test_gen_uuid4():
 def test_uuid4_length():
     u = gen_uuid4()
     assert len(u) == 36
-    uuid.UUID(u)  # should not raise
+    uuid.UUID(u)
 
 def test_now_utc():
     import datetime

@@ -6,7 +6,6 @@ from apps.core.permissions import IsAdmin
 
 class PingView(APIView):
     def get(self, request):
-        # echo request id to confirm middleware set it
         return ok({"ping": "pong", "request_id": getattr(request, "request_id", None)})
 
 
