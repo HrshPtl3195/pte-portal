@@ -1,8 +1,8 @@
-# apps/core/result.py
+# backend/apps/core/result.py
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
-from typing import Any, Optional, Dict, Union
+from dataclasses import dataclass
+from typing import Any, Optional, Dict
 
 
 @dataclass
@@ -11,12 +11,22 @@ class Result:
     Canonical Result envelope used across the project.
     Always serializes to a dict with keys: success, data, error, meta (meta optional).
     """
+
     success: bool
     data: Optional[Any] = None
     error: Optional[Dict[str, Any]] = None
     meta: Optional[Dict[str, Any]] = None
 
     def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert to JSON-serializable dict with the uniform envelope.
+        {
+          "success": True|False,
+          "data": ...,
+          "error": {"code": "...", "message": "...", "details": {...}} | null,
+          "meta": {...} | null
+        }
+        """
         payload: Dict[str, Any] = {
             "success": bool(self.success),
             "data": self.data if self.data is not None else None,
@@ -34,7 +44,12 @@ class Result:
         return cls(success=True, data=data, error=None, meta=meta)
 
     @classmethod
-    def fail(cls, message: str, code: Optional[str] = None, details: Optional[Dict[str, Any]] = None) -> "Result":
+    def fail(
+        cls,
+        message: str,
+        code: Optional[str] = None,
+        details: Optional[Dict[str, Any]] = None,
+    ) -> "Result":
         """
         Return a failure Result with structured error.
         """
@@ -55,9 +70,11 @@ def ok(data: Any = None, meta: Optional[Dict[str, Any]] = None) -> Dict[str, Any
     return Result.ok(data=data, meta=meta).to_dict()
 
 
-def fail(message: str, code: Optional[str] = None, details: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def fail(
+    message: str, code: Optional[str] = None, details: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     return Result.fail(message=message, code=code, details=details).to_dict()
 
 
-# Expose names for from apps.core.result import Result, ok, fail
+# Expose names for `from apps.core.result import Result, ok, fail`
 __all__ = ["Result", "ok", "fail"]

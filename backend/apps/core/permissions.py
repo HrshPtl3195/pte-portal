@@ -1,6 +1,8 @@
-# apps/core/permissions.py
+# backend/apps/core/permissions.py
 from typing import Any
+
 from rest_framework.permissions import BasePermission
+
 from .constants import Role
 
 
@@ -35,11 +37,13 @@ class IsOwnerOrAdmin(BasePermission):
     """
     Object-level permission to allow owners of an object or admins.
 
-    Usage:
-      - For object-level checks (has_object_permission) this will return True when:
-          * request.user is admin (see IsAdmin logic)
+    has_permission:
+      - requires an authenticated user (object-level checks do the real work).
+
+    has_object_permission:
+      - returns True if:
+          * user is admin (IsAdmin-style logic)
           * OR object's owner id matches request.user.id
-      - has_permission is permissive but requires authentication; object-level checks handle ownership.
     """
 
     def has_permission(self, request: Any, view: Any) -> bool:
@@ -71,5 +75,9 @@ class IsOwnerOrAdmin(BasePermission):
         elif hasattr(obj, "created_by"):
             cb = getattr(obj, "created_by")
             owner_id = getattr(cb, "id", cb)
+
+        # If ownership cannot be determined, deny by default
+        if owner_id is None:
+            return False
 
         return getattr(user, "id", None) == owner_id

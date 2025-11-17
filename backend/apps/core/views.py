@@ -60,11 +60,23 @@ class AdminPageSizePagination(PageNumberPagination):
 class PingView(APIView):
     permission_classes = []  # public
 
-    @extend_schema(request=None, responses={200: OpenApiResponse(response=PingSerializer) if OpenApiResponse else None})
+    @extend_schema(
+        request=None,
+        responses={
+            200: OpenApiResponse(response=PingSerializer) if OpenApiResponse else None
+        },
+    )
     def post(self, request):
-        payload = {"ping": "pong", "request_id": getattr(request, "request_id", None)}
-        return Response(Result.ok(data=payload).to_dict(), status=status.HTTP_200_OK)
-
+        """
+        POST variant of the health-check endpoint, used by newer clients.
+        """
+        payload = {
+            "ping": "pong",
+            "request_id": getattr(request, "request_id", None),
+        }
+        return Response(
+            Result.ok(data=payload).to_dict(), status=status.HTTP_200_OK
+        )
 
 class ProtectedMeView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
