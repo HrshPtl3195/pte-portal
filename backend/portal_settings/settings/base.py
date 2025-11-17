@@ -27,7 +27,8 @@ INSTALLED_APPS = [
     # third-party
     "rest_framework",
     "drf_spectacular",
-
+    "rest_framework.authtoken",
+    
     # local apps
     "apps.core",
     "apps.accounts",
@@ -138,13 +139,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "EXCEPTION_HANDLER": "apps.core.exceptions.drf_exception_handler",
-    # optionally set default pagination class later:
-    # "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
+    "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardPagination",
+    "PAGE_SIZE": 20,
 }
-REST_FRAMEWORK["DEFAULT_PAGINATION_CLASS"] = "apps.core.pagination.StandardPagination"
-REST_FRAMEWORK["PAGE_SIZE"] = 20
+
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'PTE Portal API',

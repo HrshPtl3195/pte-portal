@@ -6,7 +6,6 @@ from django.conf.urls.static import static
 from django.views.static import serve as static_serve
 from django.views.generic import TemplateView
 
-from apps.core.views import PingView, ProtectedMeView
 
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -36,10 +35,6 @@ if settings.DEBUG or getattr(settings, "ENABLE_API_DOCS", False):
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # core/test endpoints
-    path("api/ping/", PingView.as_view(), name="api-ping"),
-    path("api/me/", ProtectedMeView.as_view(), name="api-me"),
-
     # OpenAPI JSON
     schema_urlpattern,
 
@@ -49,7 +44,8 @@ urlpatterns = [
     # API v1: include app routers. Each app should set app_name in its urls.py
     path("api/v1/test-engine/", include(("apps.test_engine.urls", "test_engine"), namespace="test_engine")),
     path("api/v1/accounts/", include(("apps.accounts.urls", "accounts"), namespace="accounts")),
-    # ... add other api includes ABOVE the catch-all ...
+    path("api/v1/core/", include(("apps.core.urls", "core"), namespace="core")),
+
 ]
 
 # Serve static/media in development only

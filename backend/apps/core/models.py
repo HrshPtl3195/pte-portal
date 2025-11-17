@@ -65,3 +65,16 @@ class SoftDeleteModel(models.Model):
         self.is_active = True
         self.deleted_at = None
         self.save(update_fields=("is_active", "deleted_at"))
+
+
+class SystemSetting(models.Model):
+    key = models.CharField(max_length=255, unique=True)
+    value = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "core_system_setting"
+        ordering = ["key"]
