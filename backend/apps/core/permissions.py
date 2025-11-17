@@ -1,7 +1,7 @@
 # backend/apps/core/permissions.py
 from typing import Any
 
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission # type: ignore
 
 from .constants import Role
 

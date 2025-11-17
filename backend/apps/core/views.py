@@ -1,19 +1,19 @@
 # apps/core/views.py
 from typing import Any, Dict, Optional
 
-from django.db import transaction
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
-from rest_framework.pagination import PageNumberPagination
+from django.db import transaction # type: ignore
+from rest_framework.views import APIView # type: ignore
+from rest_framework.response import Response # type: ignore
+from rest_framework.permissions import IsAuthenticated # type: ignore
+from rest_framework import status # type: ignore
+from rest_framework.pagination import PageNumberPagination # type: ignore
 
 from apps.core.result import Result
 from apps.core.permissions import IsAdmin
 
 # drf-spectacular helpers (safe fallback)
 try:
-    from drf_spectacular.utils import extend_schema, OpenApiResponse
+    from drf_spectacular.utils import extend_schema, OpenApiResponse # type: ignore
 except Exception:
     def extend_schema(*a, **kw):
         def _d(fn):
